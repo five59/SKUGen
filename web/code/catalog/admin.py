@@ -1,4 +1,5 @@
 from django.contrib import admin
+from mptt.admin import MPTTModelAdmin, DraggableMPTTAdmin
 from .models import *
 
 class BrandInline(admin.TabularInline):
@@ -28,7 +29,7 @@ class BrandAdmin(admin.ModelAdmin):
 class VendorAdmin(admin.ModelAdmin):
     inlines = (ProductInline, )
 
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(DraggableMPTTAdmin):
     inlines = (ProductInline, )
 
 class ProductAdmin(admin.ModelAdmin):

@@ -4,6 +4,7 @@ from candybar.CandyBarPdf417 import CandyBarPdf417
 import io, os
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
+from mptt.models import MPTTModel, TreeForeignKey
 
 # Product Brand
 class Brand(models.Model):
@@ -43,14 +44,15 @@ class Vendor(models.Model):
         verbose_name = _("Vendor")
         verbose_name_plural = _("Vendors")
 
-class Category(models.Model):
+class Category(MPTTModel):
     """( Category description)"""
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
+    parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     def __str__(self):
         return "{:03d} / {}".format(self.id, self.name)
-    class MPTTMeta:
-        order_insertion_by = ['name']
+    # class MPTTMeta:
+    #     order_insertion_by = ['name']
     class Meta:
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")

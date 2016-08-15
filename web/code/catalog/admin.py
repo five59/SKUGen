@@ -12,7 +12,7 @@ class VendorInline(admin.TabularInline):
 
 class CategoryInline(admin.TabularInline):
     model = Category
-    extra = 1
+    extra = 15
 
 class ProductInline(admin.TabularInline):
     model = Product
@@ -30,9 +30,9 @@ class VendorAdmin(admin.ModelAdmin):
     inlines = (ProductInline, )
 
 class CategoryAdmin(DraggableMPTTAdmin):
-    inlines = (ProductInline, )
+    inlines = (ProductInline, CategoryInline, )
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(MPTTModelAdmin):
     list_display = (
         'name', 'get_sku', 'get_numvariants',
     )

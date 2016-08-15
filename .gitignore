@@ -13,3 +13,5 @@ tests/.coverage
 build/
 tests/report/
 web/code/_static/
+db/data/
+db/run/

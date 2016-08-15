@@ -2,9 +2,10 @@ version: '2'
 services:
 
   db:
-    image: postgres
+    build: ./db
     volumes:
-      - ./db:/var/lib/postgresql
+      - ./db/data:/var/lib/postgresql
+      - ./db/run:/run/postgresql
 
   web:
     build: ./web

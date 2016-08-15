@@ -50,14 +50,14 @@ class Category(MPTTModel):
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     def __str__(self):
-        return "{:03d} / {}".format(self.id, self.name)
-    # class MPTTMeta:
-    #     order_insertion_by = ['name']
+        return "{}".format(self.name)
+    class MPTTMeta:
+        order_insertion_by = ['name']
     class Meta:
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 
-class Product(models.Model):
+class Product(MPTTModel):
     """( Product description)"""
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
@@ -86,6 +86,9 @@ class Product(models.Model):
 
     def __str__(self):
         return "{}".format(self.name)
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
 
     class Meta:
         verbose_name = _("Product")

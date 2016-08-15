@@ -32,7 +32,7 @@ class VendorAdmin(admin.ModelAdmin):
 class CategoryAdmin(DraggableMPTTAdmin):
     inlines = (ProductInline, CategoryInline, )
 
-class ProductAdmin(MPTTModelAdmin):
+class ProductAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'get_sku', 'get_numvariants',
     )

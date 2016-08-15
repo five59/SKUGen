@@ -57,7 +57,7 @@ class Category(MPTTModel):
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 
-class Product(MPTTModel):
+class Product(models.Model):
     """( Product description)"""
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
@@ -67,7 +67,7 @@ class Product(MPTTModel):
     #                           help_text="Manufacturer's Part Number")
     brand = models.ForeignKey(Brand, null=True)
     vendor = models.ForeignKey(Vendor, null=True)
-    category = models.ForeignKey(Category, null=True)
+    category = TreeForeignKey(Category, null=True)
 
     def get_sku(self):
         rv = "{}{}-{:03d}-{:04d}".format(
@@ -87,8 +87,8 @@ class Product(MPTTModel):
     def __str__(self):
         return "{}".format(self.name)
 
-    class MPTTMeta:
-        order_insertion_by = ['name']
+    # class MPTTMeta:
+    #     order_insertion_by = ['name']
 
     class Meta:
         verbose_name = _("Product")

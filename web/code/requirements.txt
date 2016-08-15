@@ -1,5 +1,6 @@
 candybar==0.1.5
 Django==1.9.9
+django-bootstrap3==7.0.1
 django-cleanup==0.4.2
 django-extensions==1.7.1
 django-grappelli==2.8.1

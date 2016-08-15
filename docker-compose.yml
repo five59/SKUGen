@@ -12,6 +12,7 @@ services:
     command: python manage.py runserver_plus 0.0.0.0:8010
     volumes:
       - ./web/code:/code
+      - ./web/site-packages:/usr/local/lib/python3.6/site-packages
     ports:
       - "8010:8010"
     depends_on:

@@ -5,6 +5,7 @@ import io, os
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
+from django.core.files.base import ContentFile
 
 # Product Brand
 class Brand(models.Model):
@@ -61,13 +62,14 @@ class Product(models.Model):
     """( Product description)"""
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
-    # gtin_id = models.CharField(_('GTIN'), max_length=15, default="", blank=True,
-    #                            help_text="Global Idenfiier.")
-    # mpn_id = models.CharField(_("MPN"), max_length=64, default="", blank=True,
-    #                           help_text="Manufacturer's Part Number")
+    gtin_id = models.CharField(_('GTIN'), max_length=15, default="", blank=True,
+                               help_text="Global Idenfiier.")
+    mpn_id = models.CharField(_("MPN"), max_length=64, default="", blank=True,
+                              help_text="Manufacturer's Part Number")
     brand = models.ForeignKey(Brand, null=True)
     vendor = models.ForeignKey(Vendor, null=True)
     category = TreeForeignKey(Category, null=True)
+    barcode_pdf417 = models.ImageField(upload_to="product_pdf417/", null=True, blank=True)
 
     def get_sku(self):
         rv = "{}{}-{:03d}-{:04d}".format(
@@ -84,11 +86,27 @@ class Product(models.Model):
         return rv
     get_numvariants.short_description = _('Variant SKUs')
 
+    def get_variants(self):
+        rv = ProductVariant.objects.filter(product = self.id)
+        return rv
+    get_variants.short_description = _('Variants')
+
     def __str__(self):
         return "{}".format(self.name)
 
-    # class MPTTMeta:
-    #     order_insertion_by = ['name']
+    def save(self, *args, **kwargs):
+
+        # Generate the barcode using CandyBar.
+        # Note: django-cleanup handles deleting the file if variant is deleted.
+        if not self.barcode_pdf417:
+            pdf417 = CandyBarPdf417()
+            barcode_bytestring = pdf417.encode(self.get_sku())
+            filename = "{}.png".format(
+                os.path.join(
+                    settings.MEDIA_ROOT, 'product_pdf417', self.get_sku() ))
+            self.barcode_pdf417.save(filename, ContentFile(barcode_bytestring))
+
+        super(Product, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("Product")
@@ -109,6 +127,10 @@ class ProductVariant(models.Model):
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     code = models.CharField(_('Code'), max_length=3, default="", blank=False,
                             help_text="Three-Character")
+    gtin_id = models.CharField(_('GTIN'), max_length=15, default="", blank=True,
+                               help_text="Global Idenfiier.")
+    mpn_id = models.CharField(_("MPN"), max_length=64, default="", blank=True,
+                              help_text="Manufacturer's Part Number")
     barcode_pdf417 = models.ImageField(upload_to="product_pdf417/", null=True, blank=True)
 
     def get_sku(self):
@@ -121,14 +143,15 @@ class ProductVariant(models.Model):
 
     def save(self, *args, **kwargs):
 
+        # Generate the barcode using CandyBar.
+        # Note: django-cleanup handles deleting the file if variant is deleted.
         if not self.barcode_pdf417:
             pdf417 = CandyBarPdf417()
             barcode_bytestring = pdf417.encode(self.get_sku())
-            barcode_fileobject = io.BytesIO( barcode_bytestring )
             filename = "{}.png".format(
-                os.path.join( settings.MEDIA_ROOT, 'product_pdf417', self.get_sku() )
-            )
-            self.barcode_pdf417.save(filename, barcode_fileobject)
+                os.path.join(
+                    settings.MEDIA_ROOT, 'product_pdf417', self.get_sku() ))
+            self.barcode_pdf417.save(filename, ContentFile(barcode_bytestring))
 
         super(ProductVariant, self).save(*args, **kwargs)
 

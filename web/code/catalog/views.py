@@ -5,6 +5,6 @@ from django.template import loader
 from .models import *
 
 def all_barcodes(request):
-    variants = ProductVariant.objects.all()
-    context = { 'v': variants }
+    products = Product.objects.all()
+    context = { 'products': products }
     return render(request, 'catalog/bars.html', context)

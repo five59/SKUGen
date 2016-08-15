@@ -7,5 +7,6 @@ RUN mkdir /code
 WORKDIR /code
 
 ADD ./code /code/
+ADD ./site-packages /usr/local/lib/python3.6/site-packages
 
 RUN pip install -r requirements.txt

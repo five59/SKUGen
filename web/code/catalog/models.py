@@ -14,6 +14,11 @@ class Brand(models.Model):
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     code = models.CharField(_('Code'), max_length=3, default="", blank=False,
                             help_text="Three-Character")
+    def get_numproduct(self):
+        rv = Product.objects.filter(brand=self.id).count()
+        return rv
+    get_numproduct.short_description = _('Product Count')
+
     def save(self, *args, **kwargs):
         # Always make the codeeviation uppercase
         self.code = self.code.upper()
@@ -50,6 +55,11 @@ class Category(MPTTModel):
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
+    def get_numproduct(self):
+        rv = Product.objects.filter(category=self.id).count()
+        return rv
+    get_numproduct.short_description = _('Product Count')
+
     def __str__(self):
         return "{}".format(self.name)
     class MPTTMeta:

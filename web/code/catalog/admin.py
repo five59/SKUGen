@@ -24,17 +24,26 @@ class VariantInline(admin.TabularInline):
 
 
 class BrandAdmin(admin.ModelAdmin):
+    list_display = ( 'name','get_numproduct' )
     inlines = (ProductInline, )
 
 class VendorAdmin(admin.ModelAdmin):
     inlines = (ProductInline, )
 
 class CategoryAdmin(DraggableMPTTAdmin):
+    list_display=(
+        'tree_actions',
+        'indented_title',
+        'get_numproduct',
+    )
+    list_display_links=(
+        'indented_title',
+    )
     inlines = (ProductInline, CategoryInline, )
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'get_sku', 'get_numvariants',
+        'name', 'brand', 'get_sku', 'get_numvariants',
     )
     list_filter = (
         ('category', admin.RelatedOnlyFieldListFilter),

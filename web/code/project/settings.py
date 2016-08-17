@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django_cleanup',
     'django_extensions',
     'catalog',
+    'django_gtin',
 ]
 
 MIDDLEWARE_CLASSES = [

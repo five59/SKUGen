@@ -24,8 +24,11 @@
           <tr class="active">
             <td colspan="2">
               <strong>{{ p.name }}</strong><br />
-              {% if p.gtin_id %}<small>GTIN: {{ p.gtin_id }}<br /></small>{% endif %}
-              {% if p.mpn_id %}<small>MPN: {{ p.mpn_id }}<br /></small>{% endif %}
+              <small>
+                {% if p.gtin_id %}GTIN: <strong>{{ p.gtin_id }}</strong> / {% endif %}
+                {% if p.mpn_id %}MPN: <strong>{{ p.mpn_id }}</strong> / {% endif %}
+                  {% if p.asin_id %}ASIN: <strong>{{ p.asin_id }}</strong>{% endif %}
+              </small>
             </td>
             <td>
               <img src="{{ MEDIA_URL }}{{ p.barcode_pdf417 }}" alt="{{ p.get_sku }}" />

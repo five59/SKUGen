@@ -6,6 +6,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
+from .forms import *
 
 # Product Brand
 class Brand(models.Model):
@@ -73,13 +75,31 @@ class Product(models.Model):
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     gtin_id = models.CharField(_('GTIN'), max_length=15, default="", blank=True,
-                               help_text="Global Idenfiier.")
+                               help_text="Global Trade Item Number",
+                               validators=[validate_gtin]
+                               )
     mpn_id = models.CharField(_("MPN"), max_length=64, default="", blank=True,
                               help_text="Manufacturer's Part Number")
+
+    asin_id = models.CharField(_("ASIN"), max_length=10, default="", blank=True,
+                               help_text=_("Amazon Standard ID Number"))
+
     brand = models.ForeignKey(Brand, null=True)
     vendor = models.ForeignKey(Vendor, null=True)
     category = TreeForeignKey(Category, null=True)
     barcode_pdf417 = models.ImageField(upload_to="product_pdf417/", null=True, blank=True)
+
+    weight_product = models.DecimalField(_("Product Weight"), help_text="In Ounces",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    weight_shipping = models.DecimalField(_("Shipping Weight"), help_text="In Ounces",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+
+    dimension_height = models.DecimalField(_("Product Height"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    dimension_width = models.DecimalField(_("Product Width"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    dimension_depth = models.DecimalField(_("Product Depth"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
 
     def get_sku(self):
         rv = "{}{}-{:03d}-{:04d}".format(
@@ -101,10 +121,27 @@ class Product(models.Model):
         return rv
     get_variants.short_description = _('Variants')
 
+
     def __str__(self):
         return "{}".format(self.name)
 
     def save(self, *args, **kwargs):
+
+        """
+        Parses a string representing a GTIN in any of its formats
+        and returns a normalised id. Throws a validation error if there
+        is a problem.
+        """
+        VALID_GTIN_LENGTHS = [8, 12, 13, 14]
+
+        # Remove everything except digits.
+        # Could do this with regex, but this is simpler.
+        nums = [ int(s) for s in self.gtin_id if s.isdigit() ]
+        if not ( len(nums) in VALID_GTIN_LENGTHS ):
+            raise ValidationError(_("This is not a valid length for a GTIN."))
+        self.gtin_id = ''.join([str(n) for n in nums])
+
+        super(Product, self).save(*args, **kwargs)
 
         # Generate the barcode using CandyBar.
         # Note: django-cleanup handles deleting the file if variant is deleted.
@@ -115,8 +152,7 @@ class Product(models.Model):
                 os.path.join(
                     settings.MEDIA_ROOT, 'product_pdf417', self.get_sku() ))
             self.barcode_pdf417.save(filename, ContentFile(barcode_bytestring))
-
-        super(Product, self).save(*args, **kwargs)
+            self.save()
 
     class Meta:
         verbose_name = _("Product")
@@ -141,7 +177,22 @@ class ProductVariant(models.Model):
                                help_text="Global Idenfiier.")
     mpn_id = models.CharField(_("MPN"), max_length=64, default="", blank=True,
                               help_text="Manufacturer's Part Number")
+    asin_id = models.CharField(_("ASIN"), max_length=10, default="", blank=True,
+                               help_text=_("Amazon Standard ID Number"))
+
     barcode_pdf417 = models.ImageField(upload_to="product_pdf417/", null=True, blank=True)
+
+    weight_product = models.DecimalField(_("Product Weight"), help_text="In Ounces",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    weight_shipping = models.DecimalField(_("Shipping Weight"), help_text="In Ounces",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+
+    dimension_height = models.DecimalField(_("Product Height"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    dimension_width = models.DecimalField(_("Product Width"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
+    dimension_depth = models.DecimalField(_("Product Depth"), help_text="In Inches",
+            max_digits=10, decimal_places=2, blank=True, default=0)
 
     def get_sku(self):
         rv = "{}-{}".format(self.product.get_sku(), self.code)
@@ -153,6 +204,23 @@ class ProductVariant(models.Model):
 
     def save(self, *args, **kwargs):
 
+
+        """
+        Parses a string representing a GTIN in any of its formats
+        and returns a normalised id. Throws a validation error if there
+        is a problem.
+        """
+        VALID_GTIN_LENGTHS = [8, 12, 13, 14]
+
+        # Remove everything except digits.
+        # Could do this with regex, but this is simpler.
+        nums = [ int(s) for s in self.gtin_id if s.isdigit() ]
+        if not ( len(nums) in VALID_GTIN_LENGTHS ):
+            raise ValidationError(_("This is not a valid length for a GTIN."))
+        self.gtin_id = ''.join([str(n) for n in nums])
+
+        super(ProductVariant, self).save(*args, **kwargs)
+
         # Generate the barcode using CandyBar.
         # Note: django-cleanup handles deleting the file if variant is deleted.
         if not self.barcode_pdf417:
@@ -162,8 +230,7 @@ class ProductVariant(models.Model):
                 os.path.join(
                     settings.MEDIA_ROOT, 'product_pdf417', self.get_sku() ))
             self.barcode_pdf417.save(filename, ContentFile(barcode_bytestring))
-
-        super(ProductVariant, self).save(*args, **kwargs)
+            self.save()
 
     class Meta:
         verbose_name = "Variant"

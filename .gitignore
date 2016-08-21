@@ -18,3 +18,4 @@ web/code/fixtures/
 db/data/
 db/run/
 web/site-packages/
+web/code/django_gtin/

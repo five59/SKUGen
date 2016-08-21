@@ -28,7 +28,8 @@ class BrandAdmin(admin.ModelAdmin):
     inlines = (ProductInline, )
 
 class VendorAdmin(admin.ModelAdmin):
-    inlines = (ProductInline, )
+    list_display = ('code','name','country',)
+    inlines = ( ProductInline, )
 
 class CategoryAdmin(DraggableMPTTAdmin):
     list_display=(

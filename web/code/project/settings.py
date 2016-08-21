@@ -33,8 +33,9 @@ INSTALLED_APPS = [
     'bootstrap3',
     'django_cleanup',
     'django_extensions',
-    'catalog',
+    'django_mailingaddress',
     'django_gtin',
+    'catalog',
 ]
 
 MIDDLEWARE_CLASSES = [

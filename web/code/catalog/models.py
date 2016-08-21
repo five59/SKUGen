@@ -1,12 +1,18 @@
-from django.db import models
-from django.utils.translation import ugettext as _
-from candybar.CandyBarPdf417 import CandyBarPdf417
 import io, os
+
+from django.db import models
+from django_mailingaddress.models import *
+from mptt.models import MPTTModel, TreeForeignKey
+
+from django.utils.translation import ugettext as _
+
+from candybar.CandyBarPdf417 import CandyBarPdf417
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
-from mptt.models import MPTTModel, TreeForeignKey
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+
 from .forms import *
 
 # Product Brand
@@ -16,6 +22,11 @@ class Brand(models.Model):
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     code = models.CharField(_('Code'), max_length=3, default="", blank=False,
                             help_text="Three-Character")
+    website = models.URLField(_("Web Site"), blank=True, default="")
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+    phone_number = models.CharField(validators=[phone_regex], blank=True, max_length=20)
+
     def get_numproduct(self):
         rv = Product.objects.filter(brand=self.id).count()
         return rv
@@ -35,19 +46,42 @@ class Brand(models.Model):
 
 # Product Vendor
 class Vendor(models.Model):
-    """( Vendor description)"""
+    """( Vendor description )"""
     id = models.AutoField(_('Code'), primary_key=True)
     name = models.CharField(_('Name'), max_length=64, default="", blank=True)
     code = models.CharField(_('Code'), max_length=2, default="", blank=False,
                             help_text="Two-Characters")
+    reg_no = models.CharField(_("Local Registration Number"), max_length=64,
+                              default="", blank=True)
+
+    address_line1 = models.CharField("Address line 1", max_length = 45,
+        blank = True)
+    address_line2 = models.CharField("Address line 2", max_length = 45,
+        blank = True)
+    postal_code = models.CharField("Postal Code", max_length = 10, blank=True)
+    city = models.CharField(max_length = 50, blank=True)
+    state_province = models.CharField("State/Province", max_length = 40,
+        blank = True)
+    country = models.ForeignKey(ISOCountry, null=True, blank=True)
+
+    website = models.URLField(_("Web Site"), blank=True, default="")
+
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+    tel_voice = models.CharField(validators=[phone_regex], blank=True, max_length=20)
+    tel_fax = models.CharField(validators=[phone_regex], blank=True, max_length=20)
+
     def save(self, *args, **kwargs):
         # Always make the codeeviation uppercase
         self.code = self.code.upper()
         super(Vendor, self).save(*args, **kwargs)
+
     def __str__(self):
         return "{} / {}".format(self.code, self.name)
+
     class MPTTMeta:
         order_insertion_by = ['name']
+
     class Meta:
         verbose_name = _("Vendor")
         verbose_name_plural = _("Vendors")
